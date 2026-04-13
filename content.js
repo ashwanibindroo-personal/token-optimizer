@@ -4,7 +4,7 @@
  */
 
 // Debounce function to limit calculations
-function debounce(func, timeout = 300) {
+function debounce(func, timeout = 400) {
   let timer;
   return (...args) => {
     clearTimeout(timer);
@@ -12,10 +12,26 @@ function debounce(func, timeout = 300) {
   };
 }
 
+// Robust text extraction
+function getElementText(el) {
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return el.value || '';
+  return el.innerText || el.textContent || '';
+}
+
+// Robust text setting
+function setElementText(el, text) {
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+    el.value = text;
+  } else {
+    el.innerText = text;
+  }
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
 const UI = {
   dashboard: null,
-  stats: { tokens: 0, cost: 0 },
-  
+
   inject() {
     if (document.getElementById('tp-root')) return;
 
@@ -34,26 +50,41 @@ const UI = {
           </div>
           <button class="tp-close" id="tp-collapse-btn">—</button>
         </div>
-        
+
         <div class="tp-stats">
           <div class="tp-stat-card">
             <span class="tp-stat-val" id="tp-token-count">0</span>
             <span class="tp-stat-label">Tokens</span>
           </div>
           <div class="tp-stat-card">
-            <span class="tp-stat-val" id="tp-cost-estimate">$0.00</span>
+            <span class="tp-stat-val" id="tp-cost-estimate">$0.0000</span>
             <span class="tp-stat-label">Est. Cost</span>
           </div>
         </div>
 
-        <div class="tp-recommendations" id="tp-recs-container">
-          <!-- Recommendations injected here -->
-        </div>
+        <div class="tp-recommendations" id="tp-recs-container"></div>
 
-        <button class="tp-action-btn" id="tp-optimize-btn">Optimize Prompt</button>
+        <button class="tp-action-btn" id="tp-optimize-btn">⚡ Optimize Prompt</button>
 
         <div class="tp-cost-comparison" id="tp-comparison">
-          Type something to see optimization benefits...
+          <div class="tp-comp-title">💰 Cost Comparison</div>
+          <div class="tp-comp-table" id="tp-comp-table">
+            <div class="tp-comp-row">
+              <span class="tp-comp-label">Original</span>
+              <span id="tp-orig-tokens">0 tokens</span>
+              <span id="tp-orig-cost">$0.00000</span>
+            </div>
+            <div class="tp-comp-row tp-comp-optimized">
+              <span class="tp-comp-label">Optimized</span>
+              <span id="tp-opt-tokens">0 tokens</span>
+              <span id="tp-opt-cost">$0.00000</span>
+            </div>
+            <div class="tp-comp-row tp-comp-savings" id="tp-savings-row">
+              <span class="tp-comp-label">You Save</span>
+              <span id="tp-save-tokens">0 tokens</span>
+              <span id="tp-save-cost" class="tp-savings">$0.00000</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -67,125 +98,135 @@ const UI = {
     document.getElementById('tp-optimize-btn').onclick = () => this.handleOptimize();
     document.getElementById('tp-collapse-btn').onclick = () => {
       this.dashboard.classList.toggle('collapsed');
-      document.getElementById('tp-collapse-btn').innerText = this.dashboard.classList.contains('collapsed') ? '✚' : '—';
+      document.getElementById('tp-collapse-btn').innerText =
+        this.dashboard.classList.contains('collapsed') ? '✚' : '—';
     };
   },
 
   update(text) {
-    if (!text) {
+    if (!text || !text.trim()) {
       this.resetUI();
       return;
     }
 
     const tokens = window.TokenOptimizer.estimateTokens(text);
-    const unitPrice = 0.0025 / 1000; // GPT-4o approx pricing ($2.50 / 1M tokens)
+    const unitPrice = 2.50 / 1000000; // GPT-4o: $2.50 per 1M input tokens
     const cost = tokens * unitPrice;
 
     document.getElementById('tp-token-count').innerText = tokens;
     document.getElementById('tp-cost-estimate').innerText = `$${cost.toFixed(4)}`;
 
+    // Recommendations
     const recs = window.TokenOptimizer.getRecommendations(text);
     const recsContainer = document.getElementById('tp-recs-container');
-    recsContainer.innerHTML = recs.map(r => `<div class="tp-rec-item"><span>💡</span> ${r}</div>`).join('');
+    recsContainer.innerHTML = recs.map(r =>
+      `<div class="tp-rec-item"><span>💡</span> ${r}</div>`
+    ).join('');
 
+    // Optimized version
     const optimizedText = window.TokenOptimizer.optimize(text);
     const optimizedTokens = window.TokenOptimizer.estimateTokens(optimizedText);
     const optimizedCost = optimizedTokens * unitPrice;
-    const savingsCost = cost - optimizedCost;
-    const savingsPercent = ((tokens - optimizedTokens) / tokens * 100).toFixed(0);
+    const savedTokens = tokens - optimizedTokens;
+    const savedCost = cost - optimizedCost;
+    const savingsPercent = tokens > 0 ? ((savedTokens / tokens) * 100).toFixed(0) : 0;
 
-    const comparisonEl = document.getElementById('tp-comparison');
-    if (tokens > optimizedTokens) {
-      comparisonEl.innerHTML = `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span>Original:</span>
-          <span>$${cost.toFixed(5)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span>Optimized:</span>
-          <span class="tp-savings">$${optimizedCost.toFixed(5)}</span>
-        </div>
-        <div style="text-align: center; border-top: 1px solid var(--tp-border); padding-top: 8px; font-weight: 600;">
-          Save $${savingsCost.toFixed(5)} (${savingsPercent}%)
-        </div>
-      `;
+    // Always update cost comparison table
+    document.getElementById('tp-orig-tokens').innerText = `${tokens} tokens`;
+    document.getElementById('tp-orig-cost').innerText = `$${cost.toFixed(5)}`;
+    document.getElementById('tp-opt-tokens').innerText = `${optimizedTokens} tokens`;
+    document.getElementById('tp-opt-cost').innerText = `$${optimizedCost.toFixed(5)}`;
+
+    const saveTokensEl = document.getElementById('tp-save-tokens');
+    const saveCostEl = document.getElementById('tp-save-cost');
+    const savingsRow = document.getElementById('tp-savings-row');
+
+    if (savedTokens > 0) {
+      saveTokensEl.innerText = `${savedTokens} tokens (${savingsPercent}%)`;
+      saveCostEl.innerText = `$${savedCost.toFixed(5)}`;
+      savingsRow.style.display = 'flex';
     } else {
-      comparisonEl.innerText = "Prompt is already fairly optimal.";
+      saveTokensEl.innerText = '0 tokens';
+      saveCostEl.innerText = '$0.00000';
+      savingsRow.style.display = 'flex';
     }
   },
 
   resetUI() {
     document.getElementById('tp-token-count').innerText = '0';
-    document.getElementById('tp-cost-estimate').innerText = '$0.00';
+    document.getElementById('tp-cost-estimate').innerText = '$0.0000';
     document.getElementById('tp-recs-container').innerHTML = '';
-    document.getElementById('tp-comparison').innerText = "Type something to see optimization benefits...";
+    document.getElementById('tp-orig-tokens').innerText = '0 tokens';
+    document.getElementById('tp-orig-cost').innerText = '$0.00000';
+    document.getElementById('tp-opt-tokens').innerText = '0 tokens';
+    document.getElementById('tp-opt-cost').innerText = '$0.00000';
+    document.getElementById('tp-save-tokens').innerText = '0 tokens';
+    document.getElementById('tp-save-cost').innerText = '$0.00000';
   },
 
   handleOptimize() {
     const input = findInputField();
     if (input) {
-      const text = input.value || input.innerText;
+      const text = getElementText(input);
       const optimized = window.TokenOptimizer.optimize(text);
-      
-      if (input.value !== undefined) {
-        input.value = optimized;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      } else {
-        input.innerText = optimized;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      }
+      setElementText(input, optimized);
       this.update(optimized);
     }
   }
 };
 
-// Find the input field for various chatbots
+// Find the input field for various chatbots and apps
 function findInputField() {
   const selectors = [
-    '#prompt-textarea',       // ChatGPT
-    '.ProseMirror',           // Claude
-    '.ql-editor',             // Gemini
-    '[role="textbox"]',       // Generic ARIA
-    '[aria-label*="chat" i]', // Generic Chat label
-    '[placeholder*="Ask" i]', // Rovo/Generic Ask
-    '[placeholder*="chat" i]',// Generic chat
-    'textarea'                // Generic fallback
+    '#prompt-textarea',          // ChatGPT
+    '.ProseMirror',              // Claude / Confluence
+    '.ql-editor',                // Gemini
+    'div[contenteditable="true"]', // Rovo / generic rich-text
+    '[role="textbox"]',          // ARIA textbox
+    'textarea',                  // Generic textarea
+    'input[type="text"]'         // Generic text input
   ];
-  
+
   for (const selector of selectors) {
-    const el = document.querySelector(selector);
-    if (el && el.offsetParent !== null) return el; // Ensure visible
+    const els = document.querySelectorAll(selector);
+    for (const el of els) {
+      if (el.offsetParent !== null) return el;
+    }
   }
   return null;
 }
 
-// Smart injection: Only show if an input field is actually present on the page
+// Poll for dynamic content and inject when ready
 function checkAndInject() {
   const input = findInputField();
   const root = document.getElementById('tp-root');
-  
+
   if (input) {
     if (!root) {
       UI.inject();
     } else if (UI.dashboard) {
-      UI.dashboard.style.display = 'block';
+      UI.dashboard.style.display = '';
     }
-    
-    // Attach listener if not already done
-    if (input && !input.dataset.tpObserved) {
+
+    if (!input.dataset.tpObserved) {
       input.dataset.tpObserved = "true";
+
+      // Listen for input events
       input.addEventListener('input', debounce((e) => {
-        const text = e.target.value || e.target.innerText;
-        UI.update(text);
+        UI.update(getElementText(e.target));
       }));
+
+      // Also listen for keyup (some editors don't fire input)
+      input.addEventListener('keyup', debounce((e) => {
+        UI.update(getElementText(e.target));
+      }));
+
       // Initial update
-      UI.update(input.value || input.innerText);
+      UI.update(getElementText(input));
     }
   } else if (root && UI.dashboard) {
-    // Hide if no input found on this page
     UI.dashboard.style.display = 'none';
   }
 }
 
-// Initialize and poll for dynamic content
 setInterval(checkAndInject, 2000);
