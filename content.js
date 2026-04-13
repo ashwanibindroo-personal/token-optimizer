@@ -78,7 +78,8 @@ const UI = {
     }
 
     const tokens = window.TokenOptimizer.estimateTokens(text);
-    const cost = (tokens / 1000) * 0.0025; // GPT-4o approx pricing
+    const unitPrice = 0.0025 / 1000; // GPT-4o approx pricing ($2.50 / 1M tokens)
+    const cost = tokens * unitPrice;
 
     document.getElementById('tp-token-count').innerText = tokens;
     document.getElementById('tp-cost-estimate').innerText = `$${cost.toFixed(4)}`;
@@ -89,14 +90,27 @@ const UI = {
 
     const optimizedText = window.TokenOptimizer.optimize(text);
     const optimizedTokens = window.TokenOptimizer.estimateTokens(optimizedText);
-    const savings = tokens - optimizedTokens;
-    const savingsPercent = ((savings / tokens) * 100).toFixed(0);
+    const optimizedCost = optimizedTokens * unitPrice;
+    const savingsCost = cost - optimizedCost;
+    const savingsPercent = ((tokens - optimizedTokens) / tokens * 100).toFixed(0);
 
-    if (savings > 0) {
-      document.getElementById('tp-comparison').innerHTML = 
-        `Optimizing can save <span class="tp-savings">${savings} tokens (${savingsPercent}%)</span>`;
+    const comparisonEl = document.getElementById('tp-comparison');
+    if (tokens > optimizedTokens) {
+      comparisonEl.innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Original:</span>
+          <span>$${cost.toFixed(5)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>Optimized:</span>
+          <span class="tp-savings">$${optimizedCost.toFixed(5)}</span>
+        </div>
+        <div style="text-align: center; border-top: 1px solid var(--tp-border); padding-top: 8px; font-weight: 600;">
+          Save $${savingsCost.toFixed(5)} (${savingsPercent}%)
+        </div>
+      `;
     } else {
-      document.getElementById('tp-comparison').innerText = "Prompt is already fairly optimal.";
+      comparisonEl.innerText = "Prompt is already fairly optimal.";
     }
   },
 
