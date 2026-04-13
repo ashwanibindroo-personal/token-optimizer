@@ -1,0 +1,153 @@
+/* Token Optimizer Premium Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --tp-bg: rgba(15, 15, 20, 0.85);
+  --tp-border: rgba(255, 255, 255, 0.1);
+  --tp-accent: #3b82f6;
+  --tp-accent-hover: #2563eb;
+  --tp-text: #f3f4f6;
+  --tp-text-dim: #9ca3af;
+  --tp-success: #10b981;
+  --tp-warning: #f59e0b;
+  --tp-glass: rgba(255, 255, 255, 0.05);
+}
+
+.tp-dashboard {
+  position: fixed;
+  bottom: 120px;
+  right: 24px;
+  width: 320px;
+  background: var(--tp-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--tp-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  z-index: 10000;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--tp-text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tp-dashboard.collapsed {
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.9);
+}
+
+.tp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tp-title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tp-title svg {
+  color: var(--tp-accent);
+}
+
+.tp-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tp-stat-card {
+  background: var(--tp-glass);
+  border: 1px solid var(--tp-border);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.tp-stat-val {
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--tp-accent);
+}
+
+.tp-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tp-text-dim);
+  margin-top: 4px;
+}
+
+.tp-recommendations {
+  margin-bottom: 20px;
+}
+
+.tp-rec-item {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid var(--tp-success);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.tp-action-btn {
+  width: 100%;
+  background: var(--tp-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tp-action-btn:hover {
+  background: var(--tp-accent-hover);
+}
+
+.tp-cost-comparison {
+  margin-top: 15px;
+  font-size: 12px;
+  color: var(--tp-text-dim);
+  border-top: 1px solid var(--tp-border);
+  padding-top: 15px;
+}
+
+.tp-savings {
+  color: var(--tp-success);
+  font-weight: 600;
+}
+
+.tp-close {
+  background: none;
+  border: none;
+  color: var(--tp-text-dim);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.tp-close:hover {
+  color: var(--tp-text);
+}
