@@ -128,37 +128,50 @@ const UI = {
 // Find the input field for various chatbots
 function findInputField() {
   const selectors = [
-    '#prompt-textarea', // ChatGPT
-    '.ProseMirror',     // Claude
-    '.ql-editor',       // Gemini
-    'textarea'          // Generic fallback
+    '#prompt-textarea',       // ChatGPT
+    '.ProseMirror',           // Claude
+    '.ql-editor',             // Gemini
+    '[role="textbox"]',       // Generic ARIA
+    '[aria-label*="chat" i]', // Generic Chat label
+    '[placeholder*="Ask" i]', // Rovo/Generic Ask
+    '[placeholder*="chat" i]',// Generic chat
+    'textarea'                // Generic fallback
   ];
   
   for (const selector of selectors) {
     const el = document.querySelector(selector);
-    if (el) return el;
+    if (el && el.offsetParent !== null) return el; // Ensure visible
   }
   return null;
 }
 
-// Monitor for input changes
-const observer = new MutationObserver(debounce(() => {
+// Smart injection: Only show if an input field is actually present on the page
+function checkAndInject() {
   const input = findInputField();
+  const root = document.getElementById('tp-root');
+  
   if (input) {
-    const text = input.value || input.innerText;
-    UI.update(text);
+    if (!root) {
+      UI.inject();
+    } else if (UI.dashboard) {
+      UI.dashboard.style.display = 'block';
+    }
+    
+    // Attach listener if not already done
+    if (input && !input.dataset.tpObserved) {
+      input.dataset.tpObserved = "true";
+      input.addEventListener('input', debounce((e) => {
+        const text = e.target.value || e.target.innerText;
+        UI.update(text);
+      }));
+      // Initial update
+      UI.update(input.value || input.innerText);
+    }
+  } else if (root && UI.dashboard) {
+    // Hide if no input found on this page
+    UI.dashboard.style.display = 'none';
   }
-}));
+}
 
-// Initialize
-setInterval(() => {
-  UI.inject();
-  const input = findInputField();
-  if (input && !input.dataset.tpObserved) {
-    input.dataset.tpObserved = "true";
-    input.addEventListener('input', debounce((e) => {
-      const text = e.target.value || e.target.innerText;
-      UI.update(text);
-    }));
-  }
-}, 2000);
+// Initialize and poll for dynamic content
+setInterval(checkAndInject, 2000);

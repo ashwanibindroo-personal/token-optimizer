@@ -7,10 +7,7 @@
     "storage"
   ],
   "host_permissions": [
-    "https://chatgpt.com/*",
-    "https://*.chatgpt.com/*",
-    "https://claude.ai/*",
-    "https://gemini.google.com/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -18,10 +15,10 @@
   "content_scripts": [
     {
       "matches": [
-        "https://chatgpt.com/*",
-        "https://*.chatgpt.com/*",
-        "https://claude.ai/*",
-        "https://gemini.google.com/*"
+        "http://*/*",
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": ["optimizer.js", "content.js"],
       "css": ["styles.css"]
