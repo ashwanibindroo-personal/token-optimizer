@@ -178,23 +178,28 @@ const UI = {
 // Find the input field for various chatbots and apps
 function findInputField() {
   const selectors = [
-    '#prompt-textarea',          // ChatGPT
-    '.ProseMirror',              // Claude / Confluence
-    '.ql-editor',                // Gemini
-    'div[contenteditable="true"]', // Rovo / generic rich-text
-    '[role="textbox"]',          // ARIA textbox
-    'textarea',                  // Generic textarea
-    'input[type="text"]'         // Generic text input
+    '#prompt-textarea',               // ChatGPT
+    '.ProseMirror',                    // Claude / Confluence
+    '.ql-editor',                      // Gemini
+    '[data-placeholder]',              // ProseMirror editors (Rovo, Notion)
+    'div[contenteditable="true"]',     // Generic rich-text
+    'p[contenteditable="true"]',       // Some editors use p
+    'span[contenteditable="true"]',    // Some editors use span
+    '[role="textbox"]',                // ARIA textbox
+    'textarea',                        // Generic textarea
+    'input[type="text"]'               // Generic text input
   ];
 
   for (const selector of selectors) {
     const els = document.querySelectorAll(selector);
     for (const el of els) {
-      if (el.offsetParent !== null) return el;
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) return el;
     }
   }
   return null;
 }
+
 
 // Poll for dynamic content and inject when ready
 function checkAndInject() {
