@@ -13,8 +13,7 @@
     "https://gemini.google.com/*"
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icons/icon128.png"
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
@@ -24,16 +23,13 @@
         "https://claude.ai/*",
         "https://gemini.google.com/*"
       ],
-      "js": ["lib/tiktoken.js", "optimizer.js", "content.js"],
+      "js": ["optimizer.js", "content.js"],
       "css": ["styles.css"]
     }
   ],
-  "icons": {
-    "128": "icons/icon128.png"
-  },
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
+      "resources": [],
       "matches": ["<all_urls>"]
     }
   ]
