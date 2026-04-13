@@ -2,6 +2,14 @@
 
 Minimize LLM costs and maximize efficiency by optimizing your AI chatbot prompts in real-time.
 
+## 🎥 Watch the Demo
+
+You can view the 12-second programmatic animation demonstrating the Token Optimizer in action here:
+[![Token Optimizer Demo](https://img.youtube.com/vi/YOUR_YOUTUBE_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_YOUTUBE_VIDEO_ID)
+*(Note: Replace `YOUR_YOUTUBE_VIDEO_ID` with the actual ID once you upload `promo_video.mp4` to YouTube.)*
+
+You can also view the raw generated video file directly in this repository: [`promo_video.mp4`](promo_video.mp4).
+
 ## Features
 - **Real-time Token Counting**: Get instant estimates of token usage as you type in ChatGPT, Claude, and Gemini.
 - **Intelligent Heuristics**: Automatically identifies and suggests removal of wordy phrases, fluff, and unnecessary politeness.
