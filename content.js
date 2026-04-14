@@ -103,7 +103,9 @@ const UI = {
     };
   },
 
-  update(text) {
+  // originalText is passed after optimization to keep the before/after comparison accurate.
+  // Without it, update() computes savings vs optimize(already-optimized) which is always $0.
+  update(text, originalText = null) {
     if (!text || !text.trim()) {
       this.resetUI();
       return;
@@ -114,63 +116,75 @@ const UI = {
     const cost = tokens * unitPrice;
 
     document.getElementById('tp-token-count').innerText = tokens;
-    document.getElementById('tp-cost-estimate').innerText = `$${cost.toFixed(4)}`;
+    document.getElementById('tp-cost-estimate').innerText = `$${cost.toFixed(6)}`;
 
-    // Recommendations
-    const recs = window.TokenOptimizer.getRecommendations(text);
+    // Recommendations (always based on current text)
+    const recs = window.TokenOptimizer.getRecommendations(originalText || text);
     const recsContainer = document.getElementById('tp-recs-container');
     recsContainer.innerHTML = recs.map(r =>
       `<div class="tp-rec-item"><span>💡</span> ${r}</div>`
     ).join('');
 
-    // Optimized version
-    const optimizedText = window.TokenOptimizer.optimize(text);
-    const optimizedTokens = window.TokenOptimizer.estimateTokens(optimizedText);
-    const optimizedCost = optimizedTokens * unitPrice;
-    const savedTokens = tokens - optimizedTokens;
-    const savedCost = cost - optimizedCost;
-    const savingsPercent = tokens > 0 ? ((savedTokens / tokens) * 100).toFixed(0) : 0;
+    // Comparison baseline: use the pre-optimization original if provided,
+    // otherwise compare current text against what optimize() would produce.
+    let origTokens, origCost, optTokens, optCost;
+    if (originalText !== null) {
+      // Post-optimize: originalText = before, text = after
+      origTokens = window.TokenOptimizer.estimateTokens(originalText);
+      origCost = origTokens * unitPrice;
+      optTokens = tokens;
+      optCost = cost;
+    } else {
+      // Live typing: show potential savings if user clicks Optimize
+      origTokens = tokens;
+      origCost = cost;
+      const optimizedText = window.TokenOptimizer.optimize(text);
+      optTokens = window.TokenOptimizer.estimateTokens(optimizedText);
+      optCost = optTokens * unitPrice;
+    }
 
-    // Always update cost comparison table
-    document.getElementById('tp-orig-tokens').innerText = `${tokens} tokens`;
-    document.getElementById('tp-orig-cost').innerText = `$${cost.toFixed(5)}`;
-    document.getElementById('tp-opt-tokens').innerText = `${optimizedTokens} tokens`;
-    document.getElementById('tp-opt-cost').innerText = `$${optimizedCost.toFixed(5)}`;
+    const savedTokens = origTokens - optTokens;
+    const savedCost = origCost - optCost;
+    const savingsPercent = origTokens > 0 ? ((savedTokens / origTokens) * 100).toFixed(0) : 0;
+
+    document.getElementById('tp-orig-tokens').innerText = `${origTokens} tokens`;
+    document.getElementById('tp-orig-cost').innerText = `$${origCost.toFixed(6)}`;
+    document.getElementById('tp-opt-tokens').innerText = `${optTokens} tokens`;
+    document.getElementById('tp-opt-cost').innerText = `$${optCost.toFixed(6)}`;
 
     const saveTokensEl = document.getElementById('tp-save-tokens');
     const saveCostEl = document.getElementById('tp-save-cost');
-    const savingsRow = document.getElementById('tp-savings-row');
 
     if (savedTokens > 0) {
       saveTokensEl.innerText = `${savedTokens} tokens (${savingsPercent}%)`;
-      saveCostEl.innerText = `$${savedCost.toFixed(5)}`;
-      savingsRow.style.display = 'flex';
+      saveCostEl.innerText = `$${savedCost.toFixed(6)}`;
     } else {
       saveTokensEl.innerText = '0 tokens';
-      saveCostEl.innerText = '$0.00000';
-      savingsRow.style.display = 'flex';
+      saveCostEl.innerText = '$0.000000';
     }
+    document.getElementById('tp-savings-row').style.display = 'flex';
   },
 
   resetUI() {
     document.getElementById('tp-token-count').innerText = '0';
-    document.getElementById('tp-cost-estimate').innerText = '$0.0000';
+    document.getElementById('tp-cost-estimate').innerText = '$0.000000';
     document.getElementById('tp-recs-container').innerHTML = '';
     document.getElementById('tp-orig-tokens').innerText = '0 tokens';
-    document.getElementById('tp-orig-cost').innerText = '$0.00000';
+    document.getElementById('tp-orig-cost').innerText = '$0.000000';
     document.getElementById('tp-opt-tokens').innerText = '0 tokens';
-    document.getElementById('tp-opt-cost').innerText = '$0.00000';
+    document.getElementById('tp-opt-cost').innerText = '$0.000000';
     document.getElementById('tp-save-tokens').innerText = '0 tokens';
-    document.getElementById('tp-save-cost').innerText = '$0.00000';
+    document.getElementById('tp-save-cost').innerText = '$0.000000';
   },
 
   handleOptimize() {
     const input = findInputField();
     if (input) {
-      const text = getElementText(input);
-      const optimized = window.TokenOptimizer.optimize(text);
+      const originalText = getElementText(input);
+      const optimized = window.TokenOptimizer.optimize(originalText);
       setElementText(input, optimized);
-      this.update(optimized);
+      // Pass originalText so the comparison shows before vs after, not $0
+      this.update(optimized, originalText);
     }
   }
 };
