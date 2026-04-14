@@ -37,8 +37,8 @@
 .tp-dashboard.collapsed {
   width: 60px;
   height: 60px;
-  overflow: hidden;
   border-radius: 50%;
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;

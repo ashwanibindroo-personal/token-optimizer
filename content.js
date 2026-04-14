@@ -51,38 +51,40 @@ const UI = {
           <button class="tp-close" id="tp-collapse-btn">—</button>
         </div>
 
-        <div class="tp-stats">
-          <div class="tp-stat-card">
-            <span class="tp-stat-val" id="tp-token-count">0</span>
-            <span class="tp-stat-label">Tokens</span>
-          </div>
-          <div class="tp-stat-card">
-            <span class="tp-stat-val" id="tp-cost-estimate">$0.0000</span>
-            <span class="tp-stat-label">Est. Cost</span>
-          </div>
-        </div>
-
-        <div class="tp-recommendations" id="tp-recs-container"></div>
-
-        <button class="tp-action-btn" id="tp-optimize-btn">⚡ Optimize Prompt</button>
-
-        <div class="tp-cost-comparison" id="tp-comparison">
-          <div class="tp-comp-title">💰 Cost Comparison</div>
-          <div class="tp-comp-table" id="tp-comp-table">
-            <div class="tp-comp-row">
-              <span class="tp-comp-label">Original</span>
-              <span id="tp-orig-tokens">0 tokens</span>
-              <span id="tp-orig-cost">$0.00000</span>
+        <div id="tp-body">
+          <div class="tp-stats">
+            <div class="tp-stat-card">
+              <span class="tp-stat-val" id="tp-token-count">0</span>
+              <span class="tp-stat-label">Tokens</span>
             </div>
-            <div class="tp-comp-row tp-comp-optimized">
-              <span class="tp-comp-label">Optimized</span>
-              <span id="tp-opt-tokens">0 tokens</span>
-              <span id="tp-opt-cost">$0.00000</span>
+            <div class="tp-stat-card">
+              <span class="tp-stat-val" id="tp-cost-estimate">$0.000000</span>
+              <span class="tp-stat-label">Est. Cost</span>
             </div>
-            <div class="tp-comp-row tp-comp-savings" id="tp-savings-row">
-              <span class="tp-comp-label">You Save</span>
-              <span id="tp-save-tokens">0 tokens</span>
-              <span id="tp-save-cost" class="tp-savings">$0.00000</span>
+          </div>
+
+          <div class="tp-recommendations" id="tp-recs-container"></div>
+
+          <button class="tp-action-btn" id="tp-optimize-btn">⚡ Optimize Prompt</button>
+
+          <div class="tp-cost-comparison" id="tp-comparison">
+            <div class="tp-comp-title">💰 Cost Comparison</div>
+            <div class="tp-comp-table" id="tp-comp-table">
+              <div class="tp-comp-row">
+                <span class="tp-comp-label">Original</span>
+                <span id="tp-orig-tokens">0 tokens</span>
+                <span id="tp-orig-cost">$0.000000</span>
+              </div>
+              <div class="tp-comp-row tp-comp-optimized">
+                <span class="tp-comp-label">Optimized</span>
+                <span id="tp-opt-tokens">0 tokens</span>
+                <span id="tp-opt-cost">$0.000000</span>
+              </div>
+              <div class="tp-comp-row tp-comp-savings" id="tp-savings-row">
+                <span class="tp-comp-label">You Save</span>
+                <span id="tp-save-tokens">0 tokens</span>
+                <span id="tp-save-cost" class="tp-savings">$0.000000</span>
+              </div>
             </div>
           </div>
         </div>
@@ -97,9 +99,10 @@ const UI = {
   setupListeners() {
     document.getElementById('tp-optimize-btn').onclick = () => this.handleOptimize();
     document.getElementById('tp-collapse-btn').onclick = () => {
-      this.dashboard.classList.toggle('collapsed');
-      document.getElementById('tp-collapse-btn').innerText =
-        this.dashboard.classList.contains('collapsed') ? '✚' : '—';
+      const body = document.getElementById('tp-body');
+      const collapsed = this.dashboard.classList.toggle('collapsed');
+      body.style.display = collapsed ? 'none' : '';
+      document.getElementById('tp-collapse-btn').innerText = collapsed ? '✚' : '—';
     };
 
     // Drag-to-move via header
