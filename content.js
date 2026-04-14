@@ -101,6 +101,40 @@ const UI = {
       document.getElementById('tp-collapse-btn').innerText =
         this.dashboard.classList.contains('collapsed') ? '✚' : '—';
     };
+
+    // Drag-to-move via header
+    const header = this.dashboard.querySelector('.tp-header');
+    let dragging = false, dragOffsetX = 0, dragOffsetY = 0;
+
+    header.addEventListener('mousedown', (e) => {
+      if (e.target.id === 'tp-collapse-btn') return;
+      // Convert bottom/right to top/left so we can move freely
+      const rect = this.dashboard.getBoundingClientRect();
+      this.dashboard.style.top = rect.top + 'px';
+      this.dashboard.style.left = rect.left + 'px';
+      this.dashboard.style.bottom = 'auto';
+      this.dashboard.style.right = 'auto';
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+      dragging = true;
+      this.dashboard.classList.add('tp-dragging');
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const x = e.clientX - dragOffsetX;
+      const y = e.clientY - dragOffsetY;
+      const maxX = window.innerWidth - this.dashboard.offsetWidth;
+      const maxY = window.innerHeight - this.dashboard.offsetHeight;
+      this.dashboard.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+      this.dashboard.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      dragging = false;
+      this.dashboard.classList.remove('tp-dragging');
+    });
   },
 
   // originalText is passed after optimization to keep the before/after comparison accurate.

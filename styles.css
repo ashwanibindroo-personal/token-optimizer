@@ -51,6 +51,17 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  cursor: grab;
+  user-select: none;
+}
+
+.tp-header:active {
+  cursor: grabbing;
+}
+
+.tp-dashboard.tp-dragging {
+  transition: none;
+  opacity: 0.92;
 }
 
 .tp-title {
